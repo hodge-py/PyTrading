@@ -7,6 +7,16 @@ from streamlit_searchbox import st_searchbox
 import talib as ta
 import plotly.graph_objects as go
 from streamlit_local_storage import LocalStorage
+from requests import Session
+from requests_ratelimiter import LimiterSession
+
+# Create a session that looks like a real browser
+def get_session():
+    session = LimiterSession(per_second=2) # Limit yourself to stay safe
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    })
+    return session
 
 localS = LocalStorage()
 
@@ -58,7 +68,7 @@ with col3:
 if search_clicked and selected_ticker:
     st.subheader(f"Results for {selected_ticker}")
 
-    tick = yf.Ticker(selected_ticker)
+    tick = yf.Ticker(selected_ticker,session=get_session())
     
     # This is where you'd put your yfinance / Plotly code
     st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}...")    
