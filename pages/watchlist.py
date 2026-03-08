@@ -6,6 +6,9 @@ import time
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
+import talib as ta
+
+st.title("My Watchlist")
 
 col1, col2, col3 = st.columns([3,1,3], vertical_alignment='bottom')
 
@@ -13,6 +16,8 @@ try:
     reading_watchlist = pd.read_csv('watchlist.csv', header=None)
 
     df_fund = pd.DataFrame(columns=['Fundamental','Value'])
+
+    df_techical = pd.DataFrame(columns=['Technical','Value'])
 
     with col1:
         selected_ticker = st.selectbox("Select a stock ticker to view your watchlist", options=reading_watchlist[0].tolist())
@@ -74,7 +79,43 @@ try:
         df_fund.loc[len(df_fund)] = ['Earnings Per Share', str(tick.info.get('earningsPerShare', 'N/A'))]
         df_fund.loc[len(df_fund)] = ['Price to Book', str(tick.info.get('priceToBook', 'N/A'))]
 
+        st.subheader("Fundamental Metrics")
+
         st.dataframe(df_fund,hide_index=True, key='df_fund')
+
+        st.subheader("Technical Metrics")
+
+        sma_20 = ta.SMA(df['Close'], timeperiod=20).iloc[-1]
+        sma_50 = ta.SMA(df['Close'], timeperiod=50).iloc[-1]
+        rsi_14 = ta.RSI(df['Close'], timeperiod=14).iloc[-1]
+        macd, macd_signal, macd_hist = ta.MACD(df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+
+        df_techical.loc[len(df_techical)] = ['SMA 20', str(round(sma_20,2))]
+        df_techical.loc[len(df_techical)] = ['SMA 50', str(round(sma_50,2))]
+        df_techical.loc[len(df_techical)] = ['RSI 14', str(round(rsi_14,2))]
+        df_techical.loc[len(df_techical)] = ['MACD', str(round(macd.iloc[-1],2))]
+        df_techical.loc[len(df_techical)] = ['MACD Signal', str(round(macd_signal.iloc[-1],2))]
+        df_techical.loc[len(df_techical)] = ['MACD Histogram', str(round(macd_hist.iloc[-1],2))]
+
+        st.dataframe(df_techical,hide_index=True, key='df_techical')
+
+        st.subheader("News")
+
+        news = tick.news
+        headlines = []
+        summary = []
+        links = []
+        print(news)
+        for i in range(len(news)):
+            headlines.append(news[i]['content']['title'])
+            summary.append(news[i]['content']['summary'])
+            links.append(news[i]['content']['canonicalUrl']['url'])
+        
+        newsNew = list(zip(headlines, summary, links))
+        news_df = pd.DataFrame(newsNew, columns=['Headline', 'Summary', 'Link'])
+        st.dataframe(news_df,hide_index=True, column_config={"Link": st.column_config.LinkColumn("Website Link")}, key='news_df')
+
+
 
 
 except pd.errors.EmptyDataError:
