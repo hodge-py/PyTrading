@@ -44,7 +44,7 @@ try:
         st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}...")
 
         
-        df = tick.history(period='1y').dropna()  # Drop rows with NaN values to avoid issues with plotting
+        df = tick.history(period='5y').dropna()  # Drop rows with NaN values to avoid issues with plotting
         # 2. Interactive Plotly Chart
 
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
