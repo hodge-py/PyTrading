@@ -78,6 +78,10 @@ try:
         df_fund.loc[len(df_fund)] = ['Return on Equity', str(tick.info.get('returnOnEquity', 'N/A'))]
         df_fund.loc[len(df_fund)] = ['Earnings Per Share', str(tick.info.get('earningsPerShare', 'N/A'))]
         df_fund.loc[len(df_fund)] = ['Price to Book', str(tick.info.get('priceToBook', 'N/A'))]
+        df_fund.loc[len(df_fund)] = ['Beta', str(tick.info.get('beta', 'N/A'))]
+        df_fund.loc[len(df_fund)] = ['52 Week High', str(tick.info.get('fiftyTwoWeekHigh', 'N/A'))]
+        df_fund.loc[len(df_fund)] = ['52 Week Low', str(tick.info.get('fiftyTwoWeekLow', 'N/A'))]
+        df_fund.loc[len(df_fund)] = ['Forward PE', str(tick.info.get('forwardPE', 'N/A'))]
 
         st.subheader("Fundamental Metrics")
 
@@ -96,6 +100,10 @@ try:
         df_techical.loc[len(df_techical)] = ['MACD', str(round(macd.iloc[-1],2))]
         df_techical.loc[len(df_techical)] = ['MACD Signal', str(round(macd_signal.iloc[-1],2))]
         df_techical.loc[len(df_techical)] = ['MACD Histogram', str(round(macd_hist.iloc[-1],2))]
+        df_techical.loc[len(df_techical)] = ['Close Price', str(round(df['Close'].iloc[-1],2))]
+        df_techical.loc[len(df_techical)] = ['Volume', str(format(round(df['Volume'].iloc[-1],2), ',.0f'))]
+        df_techical.loc[len(df_techical)] = ['20 Day Volatility', str(round(df['Close'].pct_change().rolling(window=20).std().iloc[-1]*100,2)) + '%']
+        df_techical.loc[len(df_techical)] = ['50 Day Volatility', str(round(df['Close'].pct_change().rolling(window=50).std().iloc[-1]*100,2)) + '%']
 
         st.dataframe(df_techical,hide_index=True, key='df_techical')
 
@@ -105,7 +113,7 @@ try:
         headlines = []
         summary = []
         links = []
-        
+
         for i in range(len(news)):
             headlines.append(news[i]['content']['title'])
             summary.append(news[i]['content']['summary'])
