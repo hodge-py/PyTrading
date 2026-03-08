@@ -6,6 +6,7 @@ import pathlib
 from streamlit_searchbox import st_searchbox
 import csv
 import talib as ta
+import plotly.graph_objects as go
 
 watchlistPath = pathlib.Path('watchlist.csv')
 
@@ -53,16 +54,24 @@ if search_clicked and selected_ticker:
     # This is where you'd put your yfinance / Plotly code
     st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}...")    
     
-    df = tick.history(period='1y').dropna()  # Drop rows with NaN values to avoid issues with plotting
+    df = tick.history(period='5y').dropna()  # Drop rows with NaN values to avoid issues with plotting
     
     # 1. Native Streamlit Line Chart
     sma_20 = ta.SMA(df['Close'], timeperiod=20)
     sma_50 = ta.SMA(df['Close'], timeperiod=50)
     df['sma_20'] = sma_20
     df['sma_50'] = sma_50
-    st.line_chart(df[['Close', 'sma_20', 'sma_50']])
 
-    import plotly.graph_objects as go
+    st.metric(label=f"{selected_ticker} Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
+
+    figLine = go.Figure()
+    figLine.add_trace(go.Scatter(x=df.index, y=df['Close'], name="Close", mode='lines'))
+    figLine.add_trace(go.Scatter(x=df.index, y=df['sma_20'], name="SMA 20", mode='lines'))
+    figLine.add_trace(go.Scatter(x=df.index, y=df['sma_50'], name="SMA 50", mode='lines'))
+    figLine.update_xaxes(rangeslider_visible=True)
+
+    st.plotly_chart(figLine)
+    
     fig = go.Figure(data=[go.Candlestick(x=df.index,
                 open=df['Open'],
                 high=df['High'],
@@ -78,7 +87,8 @@ if search_clicked and selected_ticker:
         rangebreaks=[
             dict(bounds=["sat", "mon"]), # Hides all weekends
             dict(values=dt_breaks)        # Hides specific holidays missing from your data
-        ]
+        ],
+        rangeslider_visible=True
     ) 
 
     st.plotly_chart(fig)
