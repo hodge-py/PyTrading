@@ -4,11 +4,13 @@ import numpy as np
 import yfinance as yf
 import pathlib
 from streamlit_searchbox import st_searchbox
-import csv
 import talib as ta
 import plotly.graph_objects as go
+from streamlit_local_storage import LocalStorage
 
-watchlistPath = pathlib.Path('watchlist.csv')
+localS = LocalStorage()
+
+current_watchlist = localS.getItem("my_watchlist")
 
 st.set_page_config(
     page_title="Stock Screener & Analysis Tool",
@@ -17,12 +19,6 @@ st.set_page_config(
 )
 
 st.title("Stock Screener & Analysis Tool")
-
-if not watchlistPath.exists():
-    with open('watchlist.csv', 'w') as f:
-        f.write("")
-else:
-    pass
 
 df_fund = pd.DataFrame(columns=['Fundamental','Value'])
 
@@ -167,22 +163,16 @@ elif search_clicked and not selected_ticker:
 
 if search_add and selected_ticker:
     selected_ticker = selected_ticker.upper()
-    flag = False
 
-    with open('watchlist.csv', 'r', newline='', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            # Check if the word is in the current row (which is a list of strings)
-            if selected_ticker in row:
-                flag = True
-                break
+    updated_list = current_watchlist if current_watchlist else []
 
-    if not flag:
-        with open('watchlist.csv', 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([selected_ticker])
-        st.success(f"{selected_ticker} added to watchlist!")
-    else:
+    if selected_ticker in updated_list:
         st.warning(f"{selected_ticker} already exists in watchlist!")
+    else:
+        updated_list.append(selected_ticker)
+        
+        # Save it back to the browser's local storage
+        localS.setItem("my_watchlist", updated_list)
+        st.success(f"{selected_ticker} added to watchlist!")
 
     

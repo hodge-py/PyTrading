@@ -7,20 +7,34 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import talib as ta
+from streamlit_local_storage import LocalStorage
+
+localS = LocalStorage()
+
+
 
 st.title("My Watchlist")
 
 col1, col2, col3 = st.columns([3,1,3], vertical_alignment='bottom')
 
 try:
-    reading_watchlist = pd.read_csv('watchlist.csv', header=None)
+    reading_watchlist = localS.getItem("my_watchlist")
+    if reading_watchlist:
+        reading_watchlist = pd.DataFrame(reading_watchlist, columns=['Ticker'])
+    elif reading_watchlist is None:
+        raise pd.errors.EmptyDataError
+    else:
+        #reading_watchlist = pd.read_csv('watchlist.csv', header=None)
+        raise pd.errors.EmptyDataError
+        
 
+    #print(reading_watchlist.head())
     df_fund = pd.DataFrame(columns=['Fundamental','Value'])
 
     df_techical = pd.DataFrame(columns=['Technical','Value'])
 
     with col1:
-        selected_ticker = st.selectbox("Select a stock ticker to view your watchlist", options=reading_watchlist[0].tolist())
+        selected_ticker = st.selectbox("Select a stock ticker to view your watchlist", options=reading_watchlist['Ticker'].tolist())
 
     with col2:
         search = st.button("Search")
@@ -30,7 +44,9 @@ try:
 
     if delete_from_watchlist:
         reading_watchlist = reading_watchlist.replace(to_replace=selected_ticker, value=np.nan).dropna()
-        reading_watchlist.to_csv('watchlist.csv', index=False, header=False)
+        reading_watchlist = reading_watchlist.reset_index(drop=True)
+        reading_list = reading_watchlist['Ticker'].tolist()
+        localS.setItem("my_watchlist", reading_list)
         st.success(f"{selected_ticker} removed from watchlist!")
         time.sleep(1)
         st.rerun()
