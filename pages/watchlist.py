@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import time
 
-col1, col2, col3 = st.columns([3,1,2])
+col1, col2, col3 = st.columns([3,1,3], vertical_alignment='bottom')
 
 try:
     reading_watchlist = pd.read_csv('watchlist.csv', header=None)

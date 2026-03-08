@@ -46,19 +46,38 @@ with col3:
 
 if search_clicked and selected_ticker:
     st.subheader(f"Results for {selected_ticker}")
+
+    tick = yf.Ticker(selected_ticker)
     
     # This is where you'd put your yfinance / Plotly code
-    st.info(f"Fetching live data for {selected_ticker}...")
-
+    st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}...")    
     
-    df = yf.Ticker(selected_ticker).history(period='1y')
-
+    df = tick.history(period='1y').dropna()  # Drop rows with NaN values to avoid issues with plotting
+    
+    print(df.tail(20))
     # 1. Native Streamlit Line Chart
     st.line_chart(df['Close'])
 
-    # 2. Interactive Plotly Chart
-    import plotly.express as px
-    fig = px.line(df, x=df.index, y='Close', color='Close', title='GOOGL Closing Prices')
+    import plotly.graph_objects as go
+    fig = go.Figure(data=[go.Candlestick(x=df.index,
+                open=df['Open'],
+                high=df['High'],
+                low=df['Low'],
+                close=df['Close'])])
+    
+    dt_all = pd.date_range(start=df.index.min(), end=df.index.max())
+    dt_obs = [d.strftime("%Y-%m-%d") for d in df.index]
+    # These are your holidays and weekends
+    dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+
+    # 2. Apply the breaks
+    fig.update_xaxes(
+        rangebreaks=[
+            dict(bounds=["sat", "mon"]), # Hides all weekends
+            dict(values=dt_breaks)        # Hides specific holidays missing from your data
+        ]
+    ) 
+
     st.plotly_chart(fig)
 
 elif search_clicked and not selected_ticker:
