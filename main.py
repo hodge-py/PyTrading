@@ -54,7 +54,6 @@ if search_clicked and selected_ticker:
     
     df = tick.history(period='1y').dropna()  # Drop rows with NaN values to avoid issues with plotting
     
-    print(df.tail(20))
     # 1. Native Streamlit Line Chart
     st.line_chart(df['Close'])
 
@@ -70,7 +69,6 @@ if search_clicked and selected_ticker:
     # These are your holidays and weekends
     dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
 
-    # 2. Apply the breaks
     fig.update_xaxes(
         rangebreaks=[
             dict(bounds=["sat", "mon"]), # Hides all weekends
