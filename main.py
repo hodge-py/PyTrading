@@ -175,4 +175,15 @@ if search_add and selected_ticker:
         localS.setItem("my_watchlist", updated_list)
         st.success(f"{selected_ticker} added to watchlist!")
 
-    
+
+st.markdown("---")
+st.caption("""
+**Disclaimer:** This application is for **informational and educational purposes only** and does 
+not constitute financial, investment, or legal advice. Investing in stocks involves 
+significant risk, and past performance is **not indicative of future results**. 
+
+The data provided is sourced from third-party APIs and may be delayed or inaccurate. 
+The developer is not responsible for any financial losses or damages resulting from 
+the use of this tool. Always consult with a **certified financial advisor** before 
+making investment decisions.
+""")
