@@ -105,7 +105,7 @@ try:
         headlines = []
         summary = []
         links = []
-        print(news)
+        
         for i in range(len(news)):
             headlines.append(news[i]['content']['title'])
             summary.append(news[i]['content']['summary'])
@@ -113,7 +113,7 @@ try:
         
         newsNew = list(zip(headlines, summary, links))
         news_df = pd.DataFrame(newsNew, columns=['Headline', 'Summary', 'Link'])
-        st.dataframe(news_df,hide_index=True, column_config={"Link": st.column_config.LinkColumn("Website Link")}, key='news_df')
+        st.dataframe(news_df,row_height=150, hide_index=True, column_config={"Link": st.column_config.LinkColumn("Website Link")}, key='news_df')
 
 
 
