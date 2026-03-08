@@ -47,15 +47,24 @@ try:
         df = tick.history(period='5y').dropna()  # Drop rows with NaN values to avoid issues with plotting
         # 2. Interactive Plotly Chart
 
+        sma_20 = ta.SMA(df['Close'], timeperiod=20)
+        sma_50 = ta.SMA(df['Close'], timeperiod=50)
+        df['sma_20'] = sma_20
+        df['sma_50'] = sma_50
+
         st.metric(label=f"{selected_ticker} Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
 
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
                     vertical_spacing=0.05, 
                     row_heights=[0.7, 0.3])
-        
-        fig.add_trace(go.Scatter(x=df.index, y=df['Close'], name="Close", mode='lines'), row=1, col=1)
+    
 
         fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name="Volume"), row=2, col=1)
+
+        fig.add_trace(go.Scatter(x=df.index, y=df['sma_20'], name="SMA 20", mode='lines'), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df['sma_50'], name="SMA 50", mode='lines'), row=1, col=1)
+
+        fig.add_trace(go.Scatter(x=df.index, y=df['Close'], name="Close", mode='lines', line_color='lightblue'), row=1, col=1)
 
         dt_all = pd.date_range(start=df.index.min(), end=df.index.max())
         dt_obs = [d.strftime("%Y-%m-%d") for d in df.index]
@@ -72,18 +81,18 @@ try:
 
         st.plotly_chart(fig)
 
-        df_fund.loc[len(df_fund)] = ['Market Cap', str(format(tick.info.get('marketCap', 'N/A'), ',.0f'))]
-        df_fund.loc[len(df_fund)] = ['PE Ratio', str(tick.info.get('trailingPE', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['Price to Earnings', str(tick.info.get('priceToEarnings', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['Current Ratio', str(tick.info.get('currentRatio', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['Debt to Equity Ratio', str(tick.info.get('debtToEquity', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['Return on Equity', str(tick.info.get('returnOnEquity', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['Earnings Per Share', str(tick.info.get('earningsPerShare', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['Price to Book', str(tick.info.get('priceToBook', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['Beta', str(tick.info.get('beta', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['52 Week High', str(tick.info.get('fiftyTwoWeekHigh', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['52 Week Low', str(tick.info.get('fiftyTwoWeekLow', 'N/A'))]
-        df_fund.loc[len(df_fund)] = ['Forward PE', str(tick.info.get('forwardPE', 'N/A'))]
+        df_fund.loc[len(df_fund)] = ['Market Cap', str(format(tick.info.get('marketCap', 'N/A'), ',.0f')) if tick.info.get('marketCap', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['PE Ratio', str(round(tick.info.get('trailingPE', 'N/A'), 2)) if tick.info.get('trailingPE', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['Price to Earnings', str(round(tick.info.get('priceToEarnings', 'N/A'), 2)) if tick.info.get('priceToEarnings', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['Current Ratio', str(round(tick.info.get('currentRatio', 'N/A'), 2)) if tick.info.get('currentRatio', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['Debt to Equity Ratio', str(round(tick.info.get('debtToEquity', 'N/A'), 2)) if tick.info.get('debtToEquity', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['Return on Equity', str(round(tick.info.get('returnOnEquity', 'N/A'), 2)) if tick.info.get('returnOnEquity', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['Earnings Per Share', str(round(tick.info.get('earningsPerShare', 'N/A'), 2)) if tick.info.get('earningsPerShare', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['Price to Book', str(round(tick.info.get('priceToBook', 'N/A'), 2)) if tick.info.get('priceToBook', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['Beta', str(round(tick.info.get('beta', 'N/A'), 2)) if tick.info.get('beta', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['52 Week High', str(round(tick.info.get('fiftyTwoWeekHigh', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekHigh', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['52 Week Low', str(round(tick.info.get('fiftyTwoWeekLow', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekLow', 'N/A') != 'N/A' else 'N/A']
+        df_fund.loc[len(df_fund)] = ['Forward PE', str(round(tick.info.get('forwardPE', 'N/A'), 2)) if tick.info.get('forwardPE', 'N/A') != 'N/A' else 'N/A']
 
         st.subheader("Fundamental Metrics")
 

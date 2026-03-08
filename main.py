@@ -10,11 +10,24 @@ import plotly.graph_objects as go
 
 watchlistPath = pathlib.Path('watchlist.csv')
 
+st.set_page_config(
+    page_title="Stock Screener & Analysis Tool",
+    page_icon=":chart_with_upwards_trend:",
+    layout="wide",
+)
+
+st.title("Stock Screener & Analysis Tool")
+
 if not watchlistPath.exists():
     with open('watchlist.csv', 'w') as f:
         f.write("")
 else:
     pass
+
+df_fund = pd.DataFrame(columns=['Fundamental','Value'])
+
+df_techical = pd.DataFrame(columns=['Technical','Value'])
+
 
 df_ticker = pd.read_csv('all_tickers.txt', sep='\t', header=0)
 
@@ -31,7 +44,7 @@ def search_tickers(search_term: str):
 
 #print(tickerAsList)
 
-col1, col2, col3 = st.columns([5,1,2])
+col1, col2, col3 = st.columns([4,1,2])
 
 with col1:
     selected_ticker = st_searchbox(
@@ -44,7 +57,7 @@ with col2:
     search_clicked = st.button("Search")
 
 with col3:
-    search_add = st.button("Add to Watchlist")
+    search_add = st.button("⭐ Add to Watchlist")
 
 if search_clicked and selected_ticker:
     st.subheader(f"Results for {selected_ticker}")
@@ -92,6 +105,62 @@ if search_clicked and selected_ticker:
     ) 
 
     st.plotly_chart(fig)
+
+    df_fund.loc[len(df_fund)] = ['Market Cap', str(format(tick.info.get('marketCap', 'N/A'), ',.0f')) if tick.info.get('marketCap', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['PE Ratio', str(round(tick.info.get('trailingPE', 'N/A'), 2)) if tick.info.get('trailingPE', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['Price to Earnings', str(round(tick.info.get('priceToEarnings', 'N/A'), 2)) if tick.info.get('priceToEarnings', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['Current Ratio', str(round(tick.info.get('currentRatio', 'N/A'), 2)) if tick.info.get('currentRatio', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['Debt to Equity Ratio', str(round(tick.info.get('debtToEquity', 'N/A'), 2)) if tick.info.get('debtToEquity', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['Return on Equity', str(round(tick.info.get('returnOnEquity', 'N/A'), 2)) if tick.info.get('returnOnEquity', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['Earnings Per Share', str(round(tick.info.get('earningsPerShare', 'N/A'), 2)) if tick.info.get('earningsPerShare', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['Price to Book', str(round(tick.info.get('priceToBook', 'N/A'), 2)) if tick.info.get('priceToBook', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['Beta', str(round(tick.info.get('beta', 'N/A'), 2)) if tick.info.get('beta', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['52 Week High', str(round(tick.info.get('fiftyTwoWeekHigh', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekHigh', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['52 Week Low', str(round(tick.info.get('fiftyTwoWeekLow', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekLow', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['Forward PE', str(round(tick.info.get('forwardPE', 'N/A'), 2)) if tick.info.get('forwardPE', 'N/A') != 'N/A' else 'N/A']
+
+    st.subheader("Fundamental Metrics")
+
+    st.dataframe(df_fund,hide_index=True, key='df_fund')
+
+    st.subheader("Technical Metrics")
+
+    sma_20 = ta.SMA(df['Close'], timeperiod=20).iloc[-1]
+    sma_50 = ta.SMA(df['Close'], timeperiod=50).iloc[-1]
+    rsi_14 = ta.RSI(df['Close'], timeperiod=14).iloc[-1]
+    macd, macd_signal, macd_hist = ta.MACD(df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+
+    df_techical.loc[len(df_techical)] = ['SMA 20', str(round(sma_20,2))]
+    df_techical.loc[len(df_techical)] = ['SMA 50', str(round(sma_50,2))]
+    df_techical.loc[len(df_techical)] = ['RSI 14', str(round(rsi_14,2))]
+    df_techical.loc[len(df_techical)] = ['MACD', str(round(macd.iloc[-1],2))]
+    df_techical.loc[len(df_techical)] = ['MACD Signal', str(round(macd_signal.iloc[-1],2))]
+    df_techical.loc[len(df_techical)] = ['MACD Histogram', str(round(macd_hist.iloc[-1],2))]
+    df_techical.loc[len(df_techical)] = ['Close Price', str(round(df['Close'].iloc[-1],2))]
+    df_techical.loc[len(df_techical)] = ['Volume', str(format(round(df['Volume'].iloc[-1],2), ',.0f'))]
+    df_techical.loc[len(df_techical)] = ['20 Day Volatility', str(round(df['Close'].pct_change().rolling(window=20).std().iloc[-1]*100,2)) + '%']
+    df_techical.loc[len(df_techical)] = ['50 Day Volatility', str(round(df['Close'].pct_change().rolling(window=50).std().iloc[-1]*100,2)) + '%']
+
+    st.dataframe(df_techical,hide_index=True, key='df_techical')
+
+    st.subheader("News")
+
+    news = tick.news
+    headlines = []
+    summary = []
+    links = []
+
+    for i in range(len(news)):
+        headlines.append(news[i]['content']['title'])
+        summary.append(news[i]['content']['summary'])
+        links.append(news[i]['content']['canonicalUrl']['url'])
+    
+    newsNew = list(zip(headlines, summary, links))
+    news_df = pd.DataFrame(newsNew, columns=['Headline', 'Summary', 'Link'])
+    st.dataframe(news_df,row_height=150, hide_index=True, column_config={"Link": st.column_config.LinkColumn("Website Link")}, key='news_df')
+
+
+
 
 elif search_clicked and not selected_ticker:
     st.warning("Please select a ticker from the list first!")
