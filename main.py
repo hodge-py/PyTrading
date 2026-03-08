@@ -5,6 +5,7 @@ import yfinance as yf
 import pathlib
 from streamlit_searchbox import st_searchbox
 import csv
+import talib as ta
 
 watchlistPath = pathlib.Path('watchlist.csv')
 
@@ -55,7 +56,11 @@ if search_clicked and selected_ticker:
     df = tick.history(period='1y').dropna()  # Drop rows with NaN values to avoid issues with plotting
     
     # 1. Native Streamlit Line Chart
-    st.line_chart(df['Close'])
+    sma_20 = ta.SMA(df['Close'], timeperiod=20)
+    sma_50 = ta.SMA(df['Close'], timeperiod=50)
+    df['sma_20'] = sma_20
+    df['sma_50'] = sma_50
+    st.line_chart(df[['Close', 'sma_20', 'sma_50']])
 
     import plotly.graph_objects as go
     fig = go.Figure(data=[go.Candlestick(x=df.index,

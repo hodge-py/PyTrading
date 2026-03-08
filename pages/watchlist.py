@@ -28,16 +28,14 @@ try:
 
     if search and selected_ticker:
         st.subheader(f"Results for {selected_ticker}")
+
+        tick = yf.Ticker(selected_ticker)
         
         # This is where you'd put your yfinance / Plotly code
-        st.info(f"Fetching live data for {selected_ticker}...")
+        st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}...")
 
         
-        df = yf.Ticker(selected_ticker).history(period='1y')
-
-        # 1. Native Streamlit Line Chart
-        st.line_chart(df['Close'])
-
+        df = tick.history(period='1y').dropna()  # Drop rows with NaN values to avoid issues with plotting
         # 2. Interactive Plotly Chart
         import plotly.express as px
         fig = px.line(df, x=df.index, y='Close', title=f"{selected_ticker} Closing Price Over the Last Year")
