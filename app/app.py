@@ -4,7 +4,7 @@ import numpy as np
 import yfinance as yf
 import pathlib
 from streamlit_searchbox import st_searchbox
-import talib as ta
+import pandas_ta as ta
 import plotly.graph_objects as go
 from streamlit_local_storage import LocalStorage
 

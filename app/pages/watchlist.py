@@ -6,7 +6,7 @@ import time
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-import talib as ta
+import pandas_ta as ta
 from streamlit_local_storage import LocalStorage
 
 localS = LocalStorage()
