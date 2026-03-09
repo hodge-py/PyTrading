@@ -63,8 +63,8 @@ try:
         df = tick.history(period='5y').dropna()  # Drop rows with NaN values to avoid issues with plotting
         # 2. Interactive Plotly Chart
 
-        sma_20 = ta.SMA(df['Close'], timeperiod=20)
-        sma_50 = ta.SMA(df['Close'], timeperiod=50)
+        sma_20 = ta.sma(df['Close'], timeperiod=20)
+        sma_50 = ta.sma(df['Close'], timeperiod=50)
         df['sma_20'] = sma_20
         df['sma_50'] = sma_50
 
@@ -116,17 +116,17 @@ try:
 
         st.subheader("Technical Metrics")
 
-        sma_20 = ta.SMA(df['Close'], timeperiod=20).iloc[-1]
-        sma_50 = ta.SMA(df['Close'], timeperiod=50).iloc[-1]
-        rsi_14 = ta.RSI(df['Close'], timeperiod=14).iloc[-1]
-        macd, macd_signal, macd_hist = ta.MACD(df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+        sma_20 = ta.sma(df['Close'], timeperiod=20).iloc[-1]
+        sma_50 = ta.sma(df['Close'], timeperiod=50).iloc[-1]
+        rsi_14 = ta.rsi(df['Close'], timeperiod=14).iloc[-1]
+        macd = ta.macd(df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
 
         df_techical.loc[len(df_techical)] = ['SMA 20', str(round(sma_20,2))]
         df_techical.loc[len(df_techical)] = ['SMA 50', str(round(sma_50,2))]
         df_techical.loc[len(df_techical)] = ['RSI 14', str(round(rsi_14,2))]
-        df_techical.loc[len(df_techical)] = ['MACD', str(round(macd.iloc[-1],2))]
-        df_techical.loc[len(df_techical)] = ['MACD Signal', str(round(macd_signal.iloc[-1],2))]
-        df_techical.loc[len(df_techical)] = ['MACD Histogram', str(round(macd_hist.iloc[-1],2))]
+        df_techical.loc[len(df_techical)] = ['MACD', str(round(macd.iloc[-1,0],2))]
+        df_techical.loc[len(df_techical)] = ['MACD Signal', str(round(macd.iloc[-1,1],2))]
+        df_techical.loc[len(df_techical)] = ['MACD Histogram', str(round(macd.iloc[-1,2],2))]
         df_techical.loc[len(df_techical)] = ['Close Price', str(round(df['Close'].iloc[-1],2))]
         df_techical.loc[len(df_techical)] = ['Volume', str(format(round(df['Volume'].iloc[-1],2), ',.0f'))]
         df_techical.loc[len(df_techical)] = ['20 Day Volatility', str(round(df['Close'].pct_change().rolling(window=20).std().iloc[-1]*100,2)) + '%']

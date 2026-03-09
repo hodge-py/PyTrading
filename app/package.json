@@ -1,0 +1,20 @@
+{
+  "name": "my-stock-desktop-app",
+  "version": "1.0.0",
+  "main": "./build/electron/main.js",
+  "stlite": {
+    "desktop": {
+      "files": [
+        "app.py",
+        "pages/*.py",
+        "all_tickers.txt"
+      ],
+      "entrypoint": "app.py"
+    }
+  },
+  "scripts": {
+    "dump": "stlite-desktop dump app",
+    "serve": "stlite-desktop serve app",
+    "dist": "electron-builder"
+  }
+}
