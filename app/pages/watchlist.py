@@ -8,10 +8,14 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import pandas_ta as ta
 from streamlit_local_storage import LocalStorage
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
 localS = LocalStorage()
 
-
+@st.cache_resource
+def load_sentiment_model():
+    return pipeline("sentiment-analysis", model="ProsusAI/finbert")
 
 st.title("My Watchlist")
 
@@ -52,26 +56,26 @@ try:
         st.rerun()
 
     if search and selected_ticker:
-        st.subheader(f"Results for {selected_ticker}")
+        st.header(f"Results for {selected_ticker}")
+        
 
         tick = yf.Ticker(selected_ticker)
         
         # This is where you'd put your yfinance / Plotly code
-        st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}...")
-    
+        st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}... Industry: {tick.info['industry']}... Sector: {tick.info['sector']}...")    
+        st.markdown("---")
         
         df = tick.history(period='5y').dropna()  # Drop rows with NaN values to avoid issues with plotting
-        # 2. Interactive Plotly Chart
-
+        
         sma_20 = ta.sma(df['Close'], timeperiod=20)
         sma_50 = ta.sma(df['Close'], timeperiod=50)
         df['sma_20'] = sma_20
         df['sma_50'] = sma_50
 
-        st.metric(label=f"{selected_ticker} Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
+        st.metric(label=f"{selected_ticker} - {tick.info['longName']} - Stock Price", value=f"${tick.info['currentPrice']:,.2f}")
 
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-                    vertical_spacing=0.05, 
+                    vertical_spacing=0.05,
                     row_heights=[0.7, 0.3])
     
 
@@ -110,11 +114,13 @@ try:
         df_fund.loc[len(df_fund)] = ['52 Week Low', str(round(tick.info.get('fiftyTwoWeekLow', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekLow', 'N/A') != 'N/A' else 'N/A']
         df_fund.loc[len(df_fund)] = ['Forward PE', str(round(tick.info.get('forwardPE', 'N/A'), 2)) if tick.info.get('forwardPE', 'N/A') != 'N/A' else 'N/A']
 
-        st.subheader("Fundamental Metrics")
+        st.header("Fundamental Metrics")
+        st.markdown("---")
 
         st.dataframe(df_fund,hide_index=True, key='df_fund')
 
-        st.subheader("Technical Metrics")
+        st.header("Technical Metrics")
+        st.markdown("---")
 
         sma_20 = ta.sma(df['Close'], timeperiod=20).iloc[-1]
         sma_50 = ta.sma(df['Close'], timeperiod=50).iloc[-1]
@@ -134,7 +140,8 @@ try:
 
         st.dataframe(df_techical,hide_index=True, key='df_techical')
 
-        st.subheader("News")
+        st.header("News")
+        st.markdown("---")
 
         news = tick.news
         headlines = []
@@ -150,6 +157,37 @@ try:
         news_df = pd.DataFrame(newsNew, columns=['Headline', 'Summary', 'Link'])
         st.dataframe(news_df,row_height=150, hide_index=True, column_config={"Link": st.column_config.LinkColumn("Website Link")}, key='news_df')
 
+
+        st.header("Financial Statements")
+        st.markdown("---")
+
+        
+        st.header('Sentiment Analysis')
+        st.markdown("---")
+
+        classifier = load_sentiment_model()
+
+        @st.fragment
+        def sentiment_analyzer_ui():
+            sentcol1, sentcol2 = st.columns([3, 1], vertical_alignment='bottom')
+
+            with sentcol1:
+                # The key ensures Streamlit remembers the text across fragment reruns
+                sentimentText = st.text_input(
+                    'Enter a sentence or paragraph to analyze sentiment:', 
+                    key='sentiment_input'
+                )
+
+            with sentcol2:
+                sentimentButton = st.button('Analyze Sentiment', key='analyze_sentiment')
+
+            # This logic only affects what happens INSIDE this function
+            if sentimentButton and sentimentText:
+                with st.spinner('Analyzing...'):
+                    result = classifier(sentimentText)[0]
+                    st.success(f"Sentiment: {result['label']} (Score: {result['score']:.4f})")
+
+        sentiment_analyzer_ui()
 
 
 

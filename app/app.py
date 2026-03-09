@@ -56,13 +56,14 @@ with col3:
     search_add = st.button("⭐ Add to Watchlist")
 
 if search_clicked and selected_ticker:
-    st.subheader(f"Results for {selected_ticker}")
+    st.header(f"Results for {selected_ticker}")
+    
 
     tick = yf.Ticker(selected_ticker)
     
     # This is where you'd put your yfinance / Plotly code
-    st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}...")    
-    
+    st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}... Industry: {tick.info['industry']}... Sector: {tick.info['sector']}...")    
+    st.markdown("---")
     df = tick.history(period='5y').dropna()  # Drop rows with NaN values to avoid issues with plotting
     
     # 1. Native Streamlit Line Chart
@@ -71,7 +72,7 @@ if search_clicked and selected_ticker:
     df['sma_20'] = sma_20
     df['sma_50'] = sma_50
 
-    st.metric(label=f"{selected_ticker} Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
+    st.metric(label=f"{selected_ticker} - {tick.info['longName']} - Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
 
     figLine = go.Figure()
     figLine.add_trace(go.Scatter(x=df.index, y=df['Close'], name="Close", mode='lines'))
@@ -80,6 +81,8 @@ if search_clicked and selected_ticker:
     figLine.update_xaxes(rangeslider_visible=True)
 
     st.plotly_chart(figLine)
+
+    st.markdown("---")
     
     fig = go.Figure(data=[go.Candlestick(x=df.index,
                 open=df['Open'],
@@ -115,11 +118,13 @@ if search_clicked and selected_ticker:
     df_fund.loc[len(df_fund)] = ['52 Week Low', str(round(tick.info.get('fiftyTwoWeekLow', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekLow', 'N/A') != 'N/A' else 'N/A']
     df_fund.loc[len(df_fund)] = ['Forward PE', str(round(tick.info.get('forwardPE', 'N/A'), 2)) if tick.info.get('forwardPE', 'N/A') != 'N/A' else 'N/A']
 
-    st.subheader("Fundamental Metrics")
+    st.header("Fundamental Metrics")
+    st.markdown("---")
 
     st.dataframe(df_fund,hide_index=True, key='df_fund')
 
-    st.subheader("Technical Metrics")
+    st.header("Technical Metrics")
+    st.markdown("---")
     df['Close'] = df['Close'].astype(float)  # Ensure 'Close' is float for MACD calculation
     sma_20 = ta.sma(df['Close'], timeperiod=20).iloc[-1]
     sma_50 = ta.sma(df['Close'], timeperiod=50).iloc[-1]
@@ -127,14 +132,19 @@ if search_clicked and selected_ticker:
     
     macd = ta.macd(df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
 
-    print(macd.tail())
+    if macd is not None and len(macd) > 0:
+        macd_line = macd.iloc[-1, 0]  # MACD Line
+        signal_line = macd.iloc[-1, 1]  # Signal Line
+        histogram = macd.iloc[-1, 2]    # MACD Histogram
+    else:
+        macd_line = signal_line = histogram = np.nan  # Handle case where MACD couldn't be calculated
 
     df_techical.loc[len(df_techical)] = ['SMA 20', str(round(sma_20,2))]
     df_techical.loc[len(df_techical)] = ['SMA 50', str(round(sma_50,2))]
     df_techical.loc[len(df_techical)] = ['RSI 14', str(round(rsi_14,2))]
-    df_techical.loc[len(df_techical)] = ['MACD', str(round(macd.iloc[-1,0],2))]
-    df_techical.loc[len(df_techical)] = ['MACD Signal', str(round(macd.iloc[-1,1],2))]
-    df_techical.loc[len(df_techical)] = ['MACD Histogram', str(round(macd.iloc[-1,2],2))]
+    df_techical.loc[len(df_techical)] = ['MACD', str(round(macd_line,2))]
+    df_techical.loc[len(df_techical)] = ['MACD Signal', str(round(signal_line,2))]
+    df_techical.loc[len(df_techical)] = ['MACD Histogram', str(round(histogram,2))]
     df_techical.loc[len(df_techical)] = ['Close Price', str(round(df['Close'].iloc[-1],2))]
     df_techical.loc[len(df_techical)] = ['Volume', str(format(round(df['Volume'].iloc[-1],2), ',.0f'))]
     df_techical.loc[len(df_techical)] = ['20 Day Volatility', str(round(df['Close'].pct_change().rolling(window=20).std().iloc[-1]*100,2)) + '%']
@@ -142,7 +152,8 @@ if search_clicked and selected_ticker:
 
     st.dataframe(df_techical,hide_index=True, key='df_techical')
 
-    st.subheader("News")
+    st.header("News")
+    st.markdown("---")
 
     news = tick.news
     headlines = []
