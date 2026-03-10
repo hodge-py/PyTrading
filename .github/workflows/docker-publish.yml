@@ -23,4 +23,4 @@ jobs:
           context: .
           push: true
           # Replace with your actual username and repo name
-          tags: your-username/stock-screener:latest
+          tags: hodgejs/pytrading:latest
