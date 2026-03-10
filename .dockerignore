@@ -1,0 +1,14 @@
+.venv
+venv
+env
+bin/
+lib/
+include/
+__pycache__/
+*.pyc
+.git
+.github
+.vscode
+*.csv
+*.json
+!all_tickers.txt
