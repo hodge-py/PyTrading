@@ -40,6 +40,14 @@ docker-compose pull
 docker-compose up -d
 ```
 
+### Updating the App
+
+An updates can be installed by running the pull command again
+
+```terminal
+docker-compose pull
+```
+
 ---
 
 ### 📂 Project Structure
