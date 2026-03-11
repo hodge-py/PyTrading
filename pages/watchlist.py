@@ -8,14 +8,8 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import pandas_ta as ta
 from streamlit_local_storage import LocalStorage
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
 localS = LocalStorage()
-
-@st.cache_resource
-def load_sentiment_model():
-    return pipeline("sentiment-analysis", model="ProsusAI/finbert")
 
 st.title("My Watchlist")
 
@@ -162,33 +156,6 @@ try:
         st.markdown("---")
 
         
-        st.header('Sentiment Analysis')
-        st.markdown("---")
-
-        classifier = load_sentiment_model()
-
-        @st.fragment
-        def sentiment_analyzer_ui():
-            sentcol1, sentcol2 = st.columns([3, 1], vertical_alignment='bottom')
-
-            with sentcol1:
-                # The key ensures Streamlit remembers the text across fragment reruns
-                sentimentText = st.text_input(
-                    'Enter a sentence or paragraph to analyze sentiment:', 
-                    key='sentiment_input'
-                )
-
-            with sentcol2:
-                sentimentButton = st.button('Analyze Sentiment', key='analyze_sentiment')
-
-            # This logic only affects what happens INSIDE this function
-            if sentimentButton and sentimentText:
-                with st.spinner('Analyzing...'):
-                    result = classifier(sentimentText)[0]
-                    st.success(f"Sentiment: {result['label']} (Score: {result['score']:.4f})")
-
-        sentiment_analyzer_ui()
-
 
 
 except pd.errors.EmptyDataError:
