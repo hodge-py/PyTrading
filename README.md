@@ -20,15 +20,33 @@ A sleek, lightweight web application built with Streamlit that allows investors 
 
 ### 🚀 Getting Started
 
-#### 1. Clone the repository
-git clone https://github.com/yourusername/stock-watchlist-app.git
-cd stock-watchlist-app
+#### 1. Download Docker Desktop
 
-#### 2. Install dependencies
-pip install -r requirements.txt
+https://docs.docker.com/get-started/introduction/get-docker-desktop/
 
-#### 3. Run the app
-streamlit run app.py
+#### 2. Create a Folder and Inside Download the Docker Compose File
+
+<a href='https://docs.docker.com/get-started/introduction/get-docker-desktop/' download>docker-compose.yml</a>
+
+#### 3. Pull the Docker Image
+
+```terminal
+docker-compose pull
+```
+
+#### 4. Run the Image
+
+```terminal
+docker-compose up -d
+```
+
+### Updating the App
+
+An updates can be installed by running the pull command again
+
+```terminal
+docker-compose pull
+```
 
 ---
 
