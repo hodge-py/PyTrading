@@ -24,7 +24,7 @@ RUN /bin/uv venv /opt/venv && \
 COPY app.py .
 COPY all_tickers.txt .
 # If you have a 'pages' folder, uncomment the line below:
-# COPY pages/ ./pages/
+COPY pages/ ./pages/
 
 # 6. Safety check: remove any local virtual environments if they were copied
 RUN rm -rf venv .venv
