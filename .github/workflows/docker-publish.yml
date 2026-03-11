@@ -2,7 +2,20 @@ name: Build and Push to Docker Hub
 
 on:
   push:
-    branches: [ "main" ] # Triggers every time you push to the main branch
+    branches: [ "main" ]
+    # This is the "Magic" part:
+    paths:
+      - 'app.py'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'all_tickers.txt'
+      - 'pages/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'app.py'
+      - 'requirements.txt'
+      - 'Dockerfile'
 
 jobs:
   build:
@@ -22,5 +35,6 @@ jobs:
         with:
           context: .
           push: true
-          # Replace with your actual username and repo name
-          tags: hodgejs/pytrading:latest
+          tags: |
+            your-username/stock-screener:latest
+            your-username/stock-screener:${{ github.run_number }}
