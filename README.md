@@ -24,9 +24,9 @@ A sleek, lightweight web application built with Streamlit that allows investors 
 
 https://docs.docker.com/get-started/introduction/get-docker-desktop/
 
-#### 2. Download the Docker Compose File
+#### 2. Create a Folder and Inside Download the Docker Compose File
 
-<a href='https://docs.docker.com/get-started/introduction/get-docker-desktop/' download></a>
+<a href='https://docs.docker.com/get-started/introduction/get-docker-desktop/' download>docker-compose.yml</a>
 
 #### 3. Pull the Docker Image
 
