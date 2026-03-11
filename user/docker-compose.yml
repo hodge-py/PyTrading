@@ -1,0 +1,9 @@
+services:
+  stock-app:
+    image: hodgejs/pytrading:latest # Use the image GitHub just built
+    ports:
+      - "8501:8501"
+    restart: always
+    # If you need to save data (like a list of tickers) between runs:
+    # volumes:
+    #  - ./data:/app/data
