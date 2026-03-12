@@ -20,53 +20,49 @@ st.set_page_config(
 
 sector_benchmarks = {
     "Technology": {
-        "avg_pe_fwd": 31.5,
-        "avg_ps": 6.5,
-        "min_net_margin": 0.25,
-        "max_debt_equity": 0.5,
-        "description": "High growth, AI-driven Capex focus."
+        "avg_pe_fwd": 31.2,
+        "avg_current_ratio": 2.10,
+        "avg_debt_to_equity": 0.35,
+        "avg_return_on_equity": 0.28,
+        "avg_earnings_per_share": 5.50,
+        "avg_price_to_book": 8.50,
+        "avg_beta": 1.25
     },
-    "Financials": {
-        "avg_pe_fwd": 13.5,
-        "avg_ps": 2.75,
-        "min_net_margin": 0.20,
-        "max_debt_equity": 2.0, # Banks naturally have higher leverage
-        "description": "Sensitive to interest rate stabilization."
+    "Financial Services": {
+        "avg_pe_fwd": 14.5,
+        "avg_current_ratio": 1.50,
+        "avg_debt_to_equity": 0.90,
+        "avg_return_on_equity": 0.14,
+        "avg_earnings_per_share": 4.20,
+        "avg_price_to_book": 1.40,
+        "avg_beta": 1.10
     },
     "Healthcare": {
-        "avg_pe_fwd": 20.0,
-        "avg_ps": 2.75,
-        "min_net_margin": 0.12,
-        "max_debt_equity": 0.8,
-        "description": "Defensive pivot with M&A rebound."
+        "avg_pe_fwd": 21.0,
+        "avg_current_ratio": 2.80,
+        "avg_debt_to_equity": 0.55,
+        "avg_return_on_equity": 0.18,
+        "avg_earnings_per_share": 3.80,
+        "avg_price_to_book": 4.50,
+        "avg_beta": 0.85
     },
     "Energy": {
-        "avg_pe_fwd": 10.0,
-        "avg_ps": 1.25,
-        "min_net_margin": 0.10,
-        "max_debt_equity": 0.6,
-        "description": "Cyclical momentum, focus on FCF yield."
+        "avg_pe_fwd": 11.5,
+        "avg_current_ratio": 1.40,
+        "avg_debt_to_equity": 0.65,
+        "avg_return_on_equity": 0.15,
+        "avg_earnings_per_share": 6.10,
+        "avg_price_to_book": 1.80,
+        "avg_beta": 1.05
     },
     "Consumer Cyclical": {
-        "avg_pe_fwd": 22.5,
-        "avg_ps": 1.5,
-        "min_net_margin": 0.07,
-        "max_debt_equity": 1.1,
-        "description": "Discretionary spending tracking inflation cooling."
-    },
-    "Industrials": {
-        "avg_pe_fwd": 18.0,
-        "avg_ps": 2.0,
-        "min_net_margin": 0.10,
-        "max_debt_equity": 0.9,
-        "description": "Infrastructure and automation tailwinds."
-    },
-    "Communication Services": {
-        "avg_pe_fwd": 19.5,
-        "avg_ps": 3.5,
-        "min_net_margin": 0.18,
-        "max_debt_equity": 0.7,
-        "description": "Ad-revenue recovery and streaming profitability."
+        "avg_pe_fwd": 24.0,
+        "avg_current_ratio": 1.70,
+        "avg_debt_to_equity": 1.10,
+        "avg_return_on_equity": 0.22,
+        "avg_earnings_per_share": 4.50,
+        "avg_price_to_book": 5.80,
+        "avg_beta": 1.20
     }
 }
 
@@ -155,22 +151,74 @@ if search_clicked and selected_ticker:
         rangeslider_visible=True
     ) 
 
+    info = tick.info
+
     st.plotly_chart(fig)
 
-    df_fund.loc[len(df_fund)] = ['Market Cap', str(format(tick.info.get('marketCap', 'N/A'), ',.0f')) if tick.info.get('marketCap', 'N/A') != 'N/A' else 'N/A',
-                                 str(format(sector_benchmarks.get(tick.info.get('sector', 'N/A'), {}).get('avg_pe_fwd', 'N/A'), ',.2f')) if sector_benchmarks.get(tick.info.get('sector', 'N/A'), {}).get('avg_pe_fwd', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['PE Ratio', str(round(tick.info.get('trailingPE', 'N/A'), 2)) if tick.info.get('trailingPE', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['Price to Earnings', str(round(tick.info.get('priceToEarnings', 'N/A'), 2)) if tick.info.get('priceToEarnings', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['Current Ratio', str(round(tick.info.get('currentRatio', 'N/A'), 2)) if tick.info.get('currentRatio', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['Debt to Equity Ratio', str(round(tick.info.get('debtToEquity', 'N/A'), 2)) if tick.info.get('debtToEquity', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['Return on Equity', str(round(tick.info.get('returnOnEquity', 'N/A'), 2)) if tick.info.get('returnOnEquity', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['Earnings Per Share', str(round(tick.info.get('earningsPerShare', 'N/A'), 2)) if tick.info.get('earningsPerShare', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['Price to Book', str(round(tick.info.get('priceToBook', 'N/A'), 2)) if tick.info.get('priceToBook', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['Beta', str(round(tick.info.get('beta', 'N/A'), 2)) if tick.info.get('beta', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['52 Week High', str(round(tick.info.get('fiftyTwoWeekHigh', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekHigh', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['52 Week Low', str(round(tick.info.get('fiftyTwoWeekLow', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekLow', 'N/A') != 'N/A' else 'N/A']
-    df_fund.loc[len(df_fund)] = ['Forward PE', str(round(tick.info.get('forwardPE', 'N/A'), 2)) if tick.info.get('forwardPE', 'N/A') != 'N/A' else 'N/A']
+    # Assuming you already set: info = tick.info
+    sector = info.get('sector', 'N/A')
+    bench = sector_benchmarks.get(sector, {})
 
+    # Market Cap
+    df_fund.loc[len(df_fund)] = ['Market Cap', 
+        str(format(info.get('marketCap', 'N/A'), ',.0f')) if info.get('marketCap', 'N/A') != 'N/A' else 'N/A',
+        'N/A']
+
+    # PE Ratio
+    df_fund.loc[len(df_fund)] = ['PE Ratio', 
+        str(round(info.get('trailingPE', 'N/A'), 2)) if info.get('trailingPE', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_pe_fwd', 'N/A'), ',.2f')) if bench.get('avg_pe_fwd', 'N/A') != 'N/A' else 'N/A']
+
+    # Price to Earnings
+    df_fund.loc[len(df_fund)] = ['Price to Earnings', 
+        str(round(info.get('priceToEarnings', 'N/A'), 2)) if info.get('priceToEarnings', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_pe_fwd', 'N/A'), ',.2f')) if bench.get('avg_pe_fwd', 'N/A') != 'N/A' else 'N/A']
+
+    # Current Ratio
+    df_fund.loc[len(df_fund)] = ['Current Ratio', 
+        str(round(info.get('currentRatio', 'N/A'), 2)) if info.get('currentRatio', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_current_ratio', 'N/A'), ',.2f')) if bench.get('avg_current_ratio', 'N/A') != 'N/A' else 'N/A']
+
+    # Debt to Equity Ratio
+    df_fund.loc[len(df_fund)] = ['Debt to Equity Ratio', 
+        str(round(info.get('debtToEquity', 'N/A'), 2)) if info.get('debtToEquity', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_debt_to_equity', 'N/A'), ',.2f')) if bench.get('avg_debt_to_equity', 'N/A') != 'N/A' else 'N/A']
+
+    # Return on Equity
+    df_fund.loc[len(df_fund)] = ['Return on Equity', 
+        str(round(info.get('returnOnEquity', 'N/A'), 2)) if info.get('returnOnEquity', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_return_on_equity', 'N/A'), ',.2f')) if bench.get('avg_return_on_equity', 'N/A') != 'N/A' else 'N/A']
+
+    # Earnings Per Share
+    df_fund.loc[len(df_fund)] = ['Earnings Per Share', 
+        str(round(info.get('trailingEps', 'N/A'), 2)) if info.get('trailingEps', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_earnings_per_share', 'N/A'), ',.2f')) if bench.get('avg_earnings_per_share', 'N/A') != 'N/A' else 'N/A']
+
+    # Price to Book
+    df_fund.loc[len(df_fund)] = ['Price to Book', 
+        str(round(info.get('priceToBook', 'N/A'), 2)) if info.get('priceToBook', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_price_to_book', 'N/A'), ',.2f')) if bench.get('avg_price_to_book', 'N/A') != 'N/A' else 'N/A']
+
+    # Beta
+    df_fund.loc[len(df_fund)] = ['Beta', 
+        str(round(info.get('beta', 'N/A'), 2)) if info.get('beta', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_beta', 'N/A'), ',.2f')) if bench.get('avg_beta', 'N/A') != 'N/A' else 'N/A']
+
+    # 52 Week High
+    df_fund.loc[len(df_fund)] = ['52 Week High', 
+        str(round(info.get('fiftyTwoWeekHigh', 'N/A'), 2)) if info.get('fiftyTwoWeekHigh', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_52_week_high', 'N/A'), ',.2f')) if bench.get('avg_52_week_high', 'N/A') != 'N/A' else 'N/A']
+
+    # 52 Week Low
+    df_fund.loc[len(df_fund)] = ['52 Week Low', 
+        str(round(info.get('fiftyTwoWeekLow', 'N/A'), 2)) if info.get('fiftyTwoWeekLow', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_52_week_low', 'N/A'), ',.2f')) if bench.get('avg_52_week_low', 'N/A') != 'N/A' else 'N/A']
+
+    # Forward PE
+    df_fund.loc[len(df_fund)] = ['Forward PE', 
+        str(round(info.get('forwardPE', 'N/A'), 2)) if info.get('forwardPE', 'N/A') != 'N/A' else 'N/A',
+        str(format(bench.get('avg_pe_fwd', 'N/A'), ',.2f')) if bench.get('avg_pe_fwd', 'N/A') != 'N/A' else 'N/A']
+        
     st.header("Fundamental Metrics")
     st.markdown("---")
 
