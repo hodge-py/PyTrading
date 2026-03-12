@@ -18,9 +18,61 @@ st.set_page_config(
     layout="wide",
 )
 
+sector_benchmarks = {
+    "Technology": {
+        "avg_pe_fwd": 31.5,
+        "avg_ps": 6.5,
+        "min_net_margin": 0.25,
+        "max_debt_equity": 0.5,
+        "description": "High growth, AI-driven Capex focus."
+    },
+    "Financials": {
+        "avg_pe_fwd": 13.5,
+        "avg_ps": 2.75,
+        "min_net_margin": 0.20,
+        "max_debt_equity": 2.0, # Banks naturally have higher leverage
+        "description": "Sensitive to interest rate stabilization."
+    },
+    "Healthcare": {
+        "avg_pe_fwd": 20.0,
+        "avg_ps": 2.75,
+        "min_net_margin": 0.12,
+        "max_debt_equity": 0.8,
+        "description": "Defensive pivot with M&A rebound."
+    },
+    "Energy": {
+        "avg_pe_fwd": 10.0,
+        "avg_ps": 1.25,
+        "min_net_margin": 0.10,
+        "max_debt_equity": 0.6,
+        "description": "Cyclical momentum, focus on FCF yield."
+    },
+    "Consumer Cyclical": {
+        "avg_pe_fwd": 22.5,
+        "avg_ps": 1.5,
+        "min_net_margin": 0.07,
+        "max_debt_equity": 1.1,
+        "description": "Discretionary spending tracking inflation cooling."
+    },
+    "Industrials": {
+        "avg_pe_fwd": 18.0,
+        "avg_ps": 2.0,
+        "min_net_margin": 0.10,
+        "max_debt_equity": 0.9,
+        "description": "Infrastructure and automation tailwinds."
+    },
+    "Communication Services": {
+        "avg_pe_fwd": 19.5,
+        "avg_ps": 3.5,
+        "min_net_margin": 0.18,
+        "max_debt_equity": 0.7,
+        "description": "Ad-revenue recovery and streaming profitability."
+    }
+}
+
 st.title("Stock Screener & Analysis Tool")
 
-df_fund = pd.DataFrame(columns=['Fundamental','Value'])
+df_fund = pd.DataFrame(columns=['Fundamental','Value', 'Sector Avg'])
 
 df_techical = pd.DataFrame(columns=['Technical','Value'])
 
@@ -105,7 +157,8 @@ if search_clicked and selected_ticker:
 
     st.plotly_chart(fig)
 
-    df_fund.loc[len(df_fund)] = ['Market Cap', str(format(tick.info.get('marketCap', 'N/A'), ',.0f')) if tick.info.get('marketCap', 'N/A') != 'N/A' else 'N/A']
+    df_fund.loc[len(df_fund)] = ['Market Cap', str(format(tick.info.get('marketCap', 'N/A'), ',.0f')) if tick.info.get('marketCap', 'N/A') != 'N/A' else 'N/A',
+                                 str(format(sector_benchmarks.get(tick.info.get('sector', 'N/A'), {}).get('avg_pe_fwd', 'N/A'), ',.2f')) if sector_benchmarks.get(tick.info.get('sector', 'N/A'), {}).get('avg_pe_fwd', 'N/A') != 'N/A' else 'N/A']
     df_fund.loc[len(df_fund)] = ['PE Ratio', str(round(tick.info.get('trailingPE', 'N/A'), 2)) if tick.info.get('trailingPE', 'N/A') != 'N/A' else 'N/A']
     df_fund.loc[len(df_fund)] = ['Price to Earnings', str(round(tick.info.get('priceToEarnings', 'N/A'), 2)) if tick.info.get('priceToEarnings', 'N/A') != 'N/A' else 'N/A']
     df_fund.loc[len(df_fund)] = ['Current Ratio', str(round(tick.info.get('currentRatio', 'N/A'), 2)) if tick.info.get('currentRatio', 'N/A') != 'N/A' else 'N/A']
