@@ -45,7 +45,7 @@ docker-compose up -d
 An updates can be installed by running the pull command again
 
 ```terminal
-docker compose up -d --pull always && docker image prune -f
+docker compose up -d --pull always --remove-orphans && docker image prune -f
 ```
 
 ---
