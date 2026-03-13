@@ -7,8 +7,11 @@ from streamlit_searchbox import st_searchbox
 import pandas_ta as ta
 import plotly.graph_objects as go
 from streamlit_local_storage import LocalStorage
+from pystock import pyStock
 
 localS = LocalStorage()
+
+Stocks = pyStock()
 
 current_watchlist = localS.getItem("my_watchlist")
 
@@ -18,62 +21,9 @@ st.set_page_config(
     layout="wide",
 )
 
-sector_benchmarks = {
-    "Technology": {
-        "avg_pe_fwd": 31.2,
-        "avg_current_ratio": 2.10,
-        "avg_debt_to_equity": 0.35,
-        "avg_return_on_equity": 0.28,
-        "avg_earnings_per_share": 5.50,
-        "avg_price_to_book": 8.50,
-        "avg_beta": 1.25
-    },
-    "Financial Services": {
-        "avg_pe_fwd": 14.5,
-        "avg_current_ratio": 1.50,
-        "avg_debt_to_equity": 0.90,
-        "avg_return_on_equity": 0.14,
-        "avg_earnings_per_share": 4.20,
-        "avg_price_to_book": 1.40,
-        "avg_beta": 1.10
-    },
-    "Healthcare": {
-        "avg_pe_fwd": 21.0,
-        "avg_current_ratio": 2.80,
-        "avg_debt_to_equity": 0.55,
-        "avg_return_on_equity": 0.18,
-        "avg_earnings_per_share": 3.80,
-        "avg_price_to_book": 4.50,
-        "avg_beta": 0.85
-    },
-    "Energy": {
-        "avg_pe_fwd": 11.5,
-        "avg_current_ratio": 1.40,
-        "avg_debt_to_equity": 0.65,
-        "avg_return_on_equity": 0.15,
-        "avg_earnings_per_share": 6.10,
-        "avg_price_to_book": 1.80,
-        "avg_beta": 1.05
-    },
-    "Consumer Cyclical": {
-        "avg_pe_fwd": 24.0,
-        "avg_current_ratio": 1.70,
-        "avg_debt_to_equity": 1.10,
-        "avg_return_on_equity": 0.22,
-        "avg_earnings_per_share": 4.50,
-        "avg_price_to_book": 5.80,
-        "avg_beta": 1.20
-    }
-}
-
 st.title("Stock Screener & Analysis Tool")
 
-df_fund = pd.DataFrame(columns=['Fundamental','Value', 'Sector Avg'])
-
-df_techical = pd.DataFrame(columns=['Technical','Value'])
-
-
-df_ticker = pd.read_csv('all_tickers.txt', sep='\t', header=0)
+df_ticker = Stocks.load_tickers('all_tickers.csv')
 
 #print(df_ticker)
 
@@ -105,20 +55,14 @@ with col3:
 
 if search_clicked and selected_ticker:
     st.header(f"Results for {selected_ticker}")
-    
 
-    tick = yf.Ticker(selected_ticker)
+    tick = Stocks.ticker_assign(selected_ticker)
     
     # This is where you'd put your yfinance / Plotly code
     st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}... Industry: {tick.info['industry']}... Sector: {tick.info['sector']}...")    
     st.markdown("---")
-    df = tick.history(period='5y').dropna()  # Drop rows with NaN values to avoid issues with plotting
-    
-    # 1. Native Streamlit Line Chart
-    sma_20 = ta.sma(df['Close'], timeperiod=20)
-    sma_50 = ta.sma(df['Close'], timeperiod=50)
-    df['sma_20'] = sma_20
-    df['sma_50'] = sma_50
+
+    df = Stocks.stock_history()
 
     st.metric(label=f"{selected_ticker} - {tick.info['longName']} - Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
 
@@ -156,69 +100,9 @@ if search_clicked and selected_ticker:
     st.plotly_chart(fig)
 
     # Assuming you already set: info = tick.info
-    sector = info.get('sector', 'N/A')
-    bench = sector_benchmarks.get(sector, {})
 
-    # Market Cap
-    df_fund.loc[len(df_fund)] = ['Market Cap', 
-        str(format(info.get('marketCap', 'N/A'), ',.0f')) if info.get('marketCap', 'N/A') != 'N/A' else 'N/A',
-        'N/A']
+    df_fund = Stocks.calculate_fundamentals()
 
-    # PE Ratio
-    df_fund.loc[len(df_fund)] = ['PE Ratio', 
-        str(round(info.get('trailingPE', 'N/A'), 2)) if info.get('trailingPE', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_pe_fwd', 'N/A'), ',.2f')) if bench.get('avg_pe_fwd', 'N/A') != 'N/A' else 'N/A']
-
-    # Price to Earnings
-    df_fund.loc[len(df_fund)] = ['Price to Earnings', 
-        str(round(info.get('priceToEarnings', 'N/A'), 2)) if info.get('priceToEarnings', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_pe_fwd', 'N/A'), ',.2f')) if bench.get('avg_pe_fwd', 'N/A') != 'N/A' else 'N/A']
-
-    # Current Ratio
-    df_fund.loc[len(df_fund)] = ['Current Ratio', 
-        str(round(info.get('currentRatio', 'N/A'), 2)) if info.get('currentRatio', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_current_ratio', 'N/A'), ',.2f')) if bench.get('avg_current_ratio', 'N/A') != 'N/A' else 'N/A']
-
-    # Debt to Equity Ratio
-    df_fund.loc[len(df_fund)] = ['Debt to Equity Ratio', 
-        str(round(info.get('debtToEquity', 'N/A'), 2)) if info.get('debtToEquity', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_debt_to_equity', 'N/A'), ',.2f')) if bench.get('avg_debt_to_equity', 'N/A') != 'N/A' else 'N/A']
-
-    # Return on Equity
-    df_fund.loc[len(df_fund)] = ['Return on Equity', 
-        str(round(info.get('returnOnEquity', 'N/A'), 2)) if info.get('returnOnEquity', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_return_on_equity', 'N/A'), ',.2f')) if bench.get('avg_return_on_equity', 'N/A') != 'N/A' else 'N/A']
-
-    # Earnings Per Share
-    df_fund.loc[len(df_fund)] = ['Earnings Per Share', 
-        str(round(info.get('trailingEps', 'N/A'), 2)) if info.get('trailingEps', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_earnings_per_share', 'N/A'), ',.2f')) if bench.get('avg_earnings_per_share', 'N/A') != 'N/A' else 'N/A']
-
-    # Price to Book
-    df_fund.loc[len(df_fund)] = ['Price to Book', 
-        str(round(info.get('priceToBook', 'N/A'), 2)) if info.get('priceToBook', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_price_to_book', 'N/A'), ',.2f')) if bench.get('avg_price_to_book', 'N/A') != 'N/A' else 'N/A']
-
-    # Beta
-    df_fund.loc[len(df_fund)] = ['Beta', 
-        str(round(info.get('beta', 'N/A'), 2)) if info.get('beta', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_beta', 'N/A'), ',.2f')) if bench.get('avg_beta', 'N/A') != 'N/A' else 'N/A']
-
-    # 52 Week High
-    df_fund.loc[len(df_fund)] = ['52 Week High', 
-        str(round(info.get('fiftyTwoWeekHigh', 'N/A'), 2)) if info.get('fiftyTwoWeekHigh', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_52_week_high', 'N/A'), ',.2f')) if bench.get('avg_52_week_high', 'N/A') != 'N/A' else 'N/A']
-
-    # 52 Week Low
-    df_fund.loc[len(df_fund)] = ['52 Week Low', 
-        str(round(info.get('fiftyTwoWeekLow', 'N/A'), 2)) if info.get('fiftyTwoWeekLow', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_52_week_low', 'N/A'), ',.2f')) if bench.get('avg_52_week_low', 'N/A') != 'N/A' else 'N/A']
-
-    # Forward PE
-    df_fund.loc[len(df_fund)] = ['Forward PE', 
-        str(round(info.get('forwardPE', 'N/A'), 2)) if info.get('forwardPE', 'N/A') != 'N/A' else 'N/A',
-        str(format(bench.get('avg_pe_fwd', 'N/A'), ',.2f')) if bench.get('avg_pe_fwd', 'N/A') != 'N/A' else 'N/A']
-        
     st.header("Fundamental Metrics")
     st.markdown("---")
 
@@ -227,47 +111,16 @@ if search_clicked and selected_ticker:
     st.header("Technical Metrics")
     st.markdown("---")
     df['Close'] = df['Close'].astype(float)  # Ensure 'Close' is float for MACD calculation
-    sma_20 = ta.sma(df['Close'], timeperiod=20).iloc[-1]
-    sma_50 = ta.sma(df['Close'], timeperiod=50).iloc[-1]
-    rsi_14 = ta.rsi(df['Close'], timeperiod=14).iloc[-1]
     
-    macd = ta.macd(df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+    df_tech = Stocks.calculate_technicals()
 
-    if macd is not None and len(macd) > 0:
-        macd_line = macd.iloc[-1, 0]  # MACD Line
-        signal_line = macd.iloc[-1, 1]  # Signal Line
-        histogram = macd.iloc[-1, 2]    # MACD Histogram
-    else:
-        macd_line = signal_line = histogram = np.nan  # Handle case where MACD couldn't be calculated
-
-    df_techical.loc[len(df_techical)] = ['SMA 20', str(round(sma_20,2))]
-    df_techical.loc[len(df_techical)] = ['SMA 50', str(round(sma_50,2))]
-    df_techical.loc[len(df_techical)] = ['RSI 14', str(round(rsi_14,2))]
-    df_techical.loc[len(df_techical)] = ['MACD', str(round(macd_line,2))]
-    df_techical.loc[len(df_techical)] = ['MACD Signal', str(round(signal_line,2))]
-    df_techical.loc[len(df_techical)] = ['MACD Histogram', str(round(histogram,2))]
-    df_techical.loc[len(df_techical)] = ['Close Price', str(round(df['Close'].iloc[-1],2))]
-    df_techical.loc[len(df_techical)] = ['Volume', str(format(round(df['Volume'].iloc[-1],2), ',.0f'))]
-    df_techical.loc[len(df_techical)] = ['20 Day Volatility', str(round(df['Close'].pct_change().rolling(window=20).std().iloc[-1]*100,2)) + '%']
-    df_techical.loc[len(df_techical)] = ['50 Day Volatility', str(round(df['Close'].pct_change().rolling(window=50).std().iloc[-1]*100,2)) + '%']
-
-    st.dataframe(df_techical,hide_index=True, key='df_techical')
+    st.dataframe(df_tech,hide_index=True, key='df_tech')
 
     st.header("News")
     st.markdown("---")
 
-    news = tick.news
-    headlines = []
-    summary = []
-    links = []
-
-    for i in range(len(news)):
-        headlines.append(news[i]['content']['title'])
-        summary.append(news[i]['content']['summary'])
-        links.append(news[i]['content']['canonicalUrl']['url'])
+    news_df = Stocks.get_news()
     
-    newsNew = list(zip(headlines, summary, links))
-    news_df = pd.DataFrame(newsNew, columns=['Headline', 'Summary', 'Link'])
     st.dataframe(news_df,row_height=150, hide_index=True, column_config={"Link": st.column_config.LinkColumn("Website Link")}, key='news_df')
 
 
