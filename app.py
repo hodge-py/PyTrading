@@ -73,9 +73,9 @@ if search_clicked and selected_ticker:
     st.metric(label=f"{selected_ticker} - {tick.info['longName']} - Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
 
     figLine = go.Figure()
-    figLine.add_trace(go.Scatter(x=df.index, y=sma_df['Close'], name="Close", mode='lines'))
     figLine.add_trace(go.Scatter(x=df.index, y=sma_df['SMA 20'], name="SMA 20", mode='lines'))
     figLine.add_trace(go.Scatter(x=df.index, y=sma_df['SMA 50'], name="SMA 50", mode='lines'))
+    figLine.add_trace(go.Scatter(x=df.index, y=sma_df['Close'], name="Close", mode='lines'))
     figLine.update_xaxes(rangeslider_visible=True)
 
     st.plotly_chart(figLine)
@@ -100,6 +100,7 @@ if search_clicked and selected_ticker:
         ],
         rangeslider_visible=True
     ) 
+    fig.update_yaxes(autorange=True, fixedrange=False)
 
     info = tick.info
 
