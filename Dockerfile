@@ -23,8 +23,10 @@ RUN /bin/uv venv /opt/venv && \
 # This ensures we don't copy local .venv or huge data folders
 COPY app.py .
 COPY all_tickers.txt .
+COPY pystock.py .
 # If you have a 'pages' folder, uncomment the line below:
 COPY pages/ ./pages/
+
 
 # 6. Safety check: remove any local virtual environments if they were copied
 RUN rm -rf venv .venv

@@ -8,7 +8,9 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import pandas_ta as ta
 from streamlit_local_storage import LocalStorage
+from pystock import pyStock
 
+Stocks = pyStock()
 localS = LocalStorage()
 
 st.title("My Watchlist")
@@ -51,35 +53,39 @@ try:
 
     if search and selected_ticker:
         st.header(f"Results for {selected_ticker}")
-        
 
-        tick = yf.Ticker(selected_ticker)
+        tick = Stocks.ticker_assign(selected_ticker)
         
         # This is where you'd put your yfinance / Plotly code
         st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}... Industry: {tick.info['industry']}... Sector: {tick.info['sector']}...")    
         st.markdown("---")
+
+        df = Stocks.stock_history()
+
+        df_fund = Stocks.calculate_fundamentals()
+
+        df_tech = Stocks.calculate_technicals()
+
+        sma_df = Stocks.sma_strategy()
+
+        st.metric(label=f"{selected_ticker} - {tick.info['longName']} - Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
+
+        figLine = go.Figure()
+        figLine.add_trace(go.Scatter(x=df.index, y=sma_df['Close'], name="Close", mode='lines'))
+        figLine.add_trace(go.Scatter(x=df.index, y=sma_df['SMA 20'], name="SMA 20", mode='lines'))
+        figLine.add_trace(go.Scatter(x=df.index, y=sma_df['SMA 50'], name="SMA 50", mode='lines'))
+        figLine.update_xaxes(rangeslider_visible=True)
+
+        st.plotly_chart(figLine)
+
+        st.markdown("---")
         
-        df = tick.history(period='5y').dropna()  # Drop rows with NaN values to avoid issues with plotting
+        fig = go.Figure(data=[go.Candlestick(x=df.index,
+                    open=df['Open'],
+                    high=df['High'],
+                    low=df['Low'],
+                    close=df['Close'])])
         
-        sma_20 = ta.sma(df['Close'], timeperiod=20)
-        sma_50 = ta.sma(df['Close'], timeperiod=50)
-        df['sma_20'] = sma_20
-        df['sma_50'] = sma_50
-
-        st.metric(label=f"{selected_ticker} - {tick.info['longName']} - Stock Price", value=f"${tick.info['currentPrice']:,.2f}")
-
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-                    vertical_spacing=0.05,
-                    row_heights=[0.7, 0.3])
-    
-
-        fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name="Volume"), row=2, col=1)
-
-        fig.add_trace(go.Scatter(x=df.index, y=df['sma_20'], name="SMA 20", mode='lines'), row=1, col=1)
-        fig.add_trace(go.Scatter(x=df.index, y=df['sma_50'], name="SMA 50", mode='lines'), row=1, col=1)
-
-        fig.add_trace(go.Scatter(x=df.index, y=df['Close'], name="Close", mode='lines', line_color='lightblue'), row=1, col=1)
-
         dt_all = pd.date_range(start=df.index.min(), end=df.index.max())
         dt_obs = [d.strftime("%Y-%m-%d") for d in df.index]
         # These are your holidays and weekends
@@ -91,22 +97,11 @@ try:
                 dict(values=dt_breaks)        # Hides specific holidays missing from your data
             ],
             rangeslider_visible=True
-        )
+        ) 
+
+        info = tick.info
 
         st.plotly_chart(fig)
-
-        df_fund.loc[len(df_fund)] = ['Market Cap', str(format(tick.info.get('marketCap', 'N/A'), ',.0f')) if tick.info.get('marketCap', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['PE Ratio', str(round(tick.info.get('trailingPE', 'N/A'), 2)) if tick.info.get('trailingPE', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['Price to Earnings', str(round(tick.info.get('priceToEarnings', 'N/A'), 2)) if tick.info.get('priceToEarnings', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['Current Ratio', str(round(tick.info.get('currentRatio', 'N/A'), 2)) if tick.info.get('currentRatio', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['Debt to Equity Ratio', str(round(tick.info.get('debtToEquity', 'N/A'), 2)) if tick.info.get('debtToEquity', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['Return on Equity', str(round(tick.info.get('returnOnEquity', 'N/A'), 2)) if tick.info.get('returnOnEquity', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['Earnings Per Share', str(round(tick.info.get('earningsPerShare', 'N/A'), 2)) if tick.info.get('earningsPerShare', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['Price to Book', str(round(tick.info.get('priceToBook', 'N/A'), 2)) if tick.info.get('priceToBook', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['Beta', str(round(tick.info.get('beta', 'N/A'), 2)) if tick.info.get('beta', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['52 Week High', str(round(tick.info.get('fiftyTwoWeekHigh', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekHigh', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['52 Week Low', str(round(tick.info.get('fiftyTwoWeekLow', 'N/A'), 2)) if tick.info.get('fiftyTwoWeekLow', 'N/A') != 'N/A' else 'N/A']
-        df_fund.loc[len(df_fund)] = ['Forward PE', str(round(tick.info.get('forwardPE', 'N/A'), 2)) if tick.info.get('forwardPE', 'N/A') != 'N/A' else 'N/A']
 
         st.header("Fundamental Metrics")
         st.markdown("---")
@@ -115,47 +110,18 @@ try:
 
         st.header("Technical Metrics")
         st.markdown("---")
+        df['Close'] = df['Close'].astype(float)  # Ensure 'Close' is float for MACD calculation
 
-        sma_20 = ta.sma(df['Close'], timeperiod=20).iloc[-1]
-        sma_50 = ta.sma(df['Close'], timeperiod=50).iloc[-1]
-        rsi_14 = ta.rsi(df['Close'], timeperiod=14).iloc[-1]
-        macd = ta.macd(df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
-
-        df_techical.loc[len(df_techical)] = ['SMA 20', str(round(sma_20,2))]
-        df_techical.loc[len(df_techical)] = ['SMA 50', str(round(sma_50,2))]
-        df_techical.loc[len(df_techical)] = ['RSI 14', str(round(rsi_14,2))]
-        df_techical.loc[len(df_techical)] = ['MACD', str(round(macd.iloc[-1,0],2))]
-        df_techical.loc[len(df_techical)] = ['MACD Signal', str(round(macd.iloc[-1,1],2))]
-        df_techical.loc[len(df_techical)] = ['MACD Histogram', str(round(macd.iloc[-1,2],2))]
-        df_techical.loc[len(df_techical)] = ['Close Price', str(round(df['Close'].iloc[-1],2))]
-        df_techical.loc[len(df_techical)] = ['Volume', str(format(round(df['Volume'].iloc[-1],2), ',.0f'))]
-        df_techical.loc[len(df_techical)] = ['20 Day Volatility', str(round(df['Close'].pct_change().rolling(window=20).std().iloc[-1]*100,2)) + '%']
-        df_techical.loc[len(df_techical)] = ['50 Day Volatility', str(round(df['Close'].pct_change().rolling(window=50).std().iloc[-1]*100,2)) + '%']
-
-        st.dataframe(df_techical,hide_index=True, key='df_techical')
+        st.dataframe(df_tech,hide_index=True, key='df_tech')
 
         st.header("News")
         st.markdown("---")
 
-        news = tick.news
-        headlines = []
-        summary = []
-        links = []
-
-        for i in range(len(news)):
-            headlines.append(news[i]['content']['title'])
-            summary.append(news[i]['content']['summary'])
-            links.append(news[i]['content']['canonicalUrl']['url'])
+        news_df = Stocks.get_news()
         
-        newsNew = list(zip(headlines, summary, links))
-        news_df = pd.DataFrame(newsNew, columns=['Headline', 'Summary', 'Link'])
         st.dataframe(news_df,row_height=150, hide_index=True, column_config={"Link": st.column_config.LinkColumn("Website Link")}, key='news_df')
 
-
-        st.header("Financial Statements")
-        st.markdown("---")
-
-        
+            
 
 
 except pd.errors.EmptyDataError:

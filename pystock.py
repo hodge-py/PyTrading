@@ -100,13 +100,21 @@ class pyStock:
         sma_20 = ta.sma(self.data['Close'], timeperiod=20)
         sma_50 = ta.sma(self.data['Close'], timeperiod=50)
         rsi_14 = ta.rsi(self.data['Close'], timeperiod=14)
-        macd, macd_signal, macd_hist = ta.macd(self.data['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+        macd = ta.macd(self.data['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
 
         self.df_tech = pd.DataFrame({
             'Technical': ['SMA 20', 'SMA 50', 'RSI 14', 'MACD', 'MACD Signal', 'MACD Hist'],
-            'Value': [sma_20.iloc[-1], sma_50.iloc[-1], rsi_14.iloc[-1], macd.iloc[-1], macd_signal.iloc[-1], macd_hist.iloc[-1]]
+            'Value': [sma_20.iloc[-1], sma_50.iloc[-1], rsi_14.iloc[-1], macd.iloc[-1,0], macd.iloc[-1,1], macd.iloc[-1,2]]
         })
         return self.df_tech
+    
+    def sma_strategy(self):
+        self.data['SMA 20'] = ta.sma(self.data['Close'], timeperiod=20)
+        self.data['SMA 50'] = ta.sma(self.data['Close'], timeperiod=50)
+        self.data['Signal'] = 0
+        self.data.loc[self.data['SMA 20'] > self.data['SMA 50'], 'Signal'] = 1
+        self.data.loc[self.data['SMA 20'] < self.data['SMA 50'], 'Signal'] = -1
+        return self.data[['Close', 'SMA 20', 'SMA 50', 'Signal']]
     
     def get_news(self):
         news = self.ticker.news
