@@ -130,3 +130,6 @@ class pyStock:
         newsNew = list(zip(headlines, summary, links))
         news_df = pd.DataFrame(newsNew, columns=['Headline', 'Summary', 'Link'])
         return news_df
+    
+    def get_info(self):
+        return self.ticker.info
