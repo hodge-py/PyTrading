@@ -58,7 +58,9 @@ def handle_deletion_callback():
 
 st.title("My Portfolio")
 
-col1, col2, col3, col4 = st.columns([3,1,3,1], vertical_alignment='center')
+c = st.container(border=True)
+
+col1, col2, col3, col4 = c.columns([1,1,1,1], vertical_alignment='bottom')
 
 with col1:
     selected_ticker = st_searchbox(
@@ -76,23 +78,23 @@ with col3:
 with col4:
     add_to_portfolio = st.button("Add to Portfolio")
 
-valCol1, valCol2, valCol3 = st.columns([1,1,1], vertical_alignment='center')
+valCol1, valCol2, valCol3 = st.columns([1,1,1], vertical_alignment='center',border=True)
 
 with valCol1:
-    portfolio_value = df['Current Value'].replace('[\$,]', '', regex=True).astype(float).sum()
+    portfolio_value = df['Current Value'].replace('[\\$,]', '', regex=True).astype(float).sum()
     st.metric(label="Total Portfolio Value", value=f"${portfolio_value:,.2f}")
 
 with valCol2:
-    total_gain_loss = df['Gain/Loss'].replace('[\$,]', '', regex=True).astype(float).sum()
+    total_gain_loss = df['Gain/Loss'].replace('[\\$,]', '', regex=True).astype(float).sum()
     st.metric(label="Total Gain/Loss", value=f"${total_gain_loss:,.2f}")
 
 with valCol3:
-    total_gain_loss_percent = df['Gain/Loss %'].replace('[\%,]', '', regex=True).astype(float).sum()
+    total_gain_loss_percent = df['Gain/Loss %'].replace('[\\%,]', '', regex=True).astype(float).sum()
     st.metric(label="Total Gain/Loss %", value=f"{total_gain_loss_percent:.2f}%")
 
-st.markdown("---")
+c_table = st.container(border=True)
 
-st.data_editor(df, num_rows="dynamic", use_container_width='stretch', key="my_portfolio",on_change=handle_deletion_callback,column_config={'Ticker': {'alignment':'center'}, 'Shares Owned': {'alignment':'right'}, 'Average Share Price': {'alignment':'right'}, 'Current Share Price': {'alignment':'right'}, 'Gain/Loss': {'alignment':'right'}, 'Gain/Loss %': {'alignment':'right'}, 'Original Value': {'alignment':'right'}, 'Current Value': {'alignment':'right'} })
+c_table.data_editor(df, num_rows="dynamic", use_container_width='stretch', key="my_portfolio",on_change=handle_deletion_callback,column_config={'Ticker': {'alignment':'center'}, 'Shares Owned': {'alignment':'right'}, 'Average Share Price': {'alignment':'right'}, 'Current Share Price': {'alignment':'right'}, 'Gain/Loss': {'alignment':'right'}, 'Gain/Loss %': {'alignment':'right'}, 'Original Value': {'alignment':'right'}, 'Current Value': {'alignment':'right'} })
 
 
 if add_to_portfolio and selected_ticker:

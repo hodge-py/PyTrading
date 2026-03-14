@@ -38,7 +38,9 @@ def search_tickers(search_term: str):
 
 #print(tickerAsList)
 
-col1, col2, col3 = st.columns([4,1,2])
+top_container = st.container()
+
+col1, col2, col3 = top_container.columns([4,1,2])
 
 with col1:
     selected_ticker = st_searchbox(
@@ -54,13 +56,13 @@ with col3:
     search_add = st.button("⭐ Add to Watchlist")
 
 if search_clicked and selected_ticker:
-    st.header(f"Results for {selected_ticker}")
+    stockContainer = st.container(border=True)
+    stockContainer.header(f"Results for {selected_ticker}")
 
     tick = Stocks.ticker_assign(selected_ticker)
     
     # This is where you'd put your yfinance / Plotly code
-    st.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}... Industry: {tick.info['industry']}... Sector: {tick.info['sector']}...")    
-    st.markdown("---")
+    stockContainer.info(f"Fetching live data for {selected_ticker}... {tick.info['longName']}... Industry: {tick.info['industry']}... Sector: {tick.info['sector']}...")    
 
     df = Stocks.stock_history()
 
@@ -70,7 +72,7 @@ if search_clicked and selected_ticker:
 
     sma_df = Stocks.sma_strategy()
 
-    st.metric(label=f"{selected_ticker} - {tick.info['longName']} - Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
+    stockContainer.metric(label=f"{selected_ticker} - {tick.info['longName']} - Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
 
     figLine = go.Figure()
     figLine.add_trace(go.Scatter(x=df.index, y=sma_df['SMA 20'], name="SMA 20", mode='lines'))
@@ -78,52 +80,26 @@ if search_clicked and selected_ticker:
     figLine.add_trace(go.Scatter(x=df.index, y=sma_df['Close'], name="Close", mode='lines'))
     figLine.update_xaxes(rangeslider_visible=True)
 
-    st.plotly_chart(figLine)
+    stockContainer.plotly_chart(figLine)
 
-    st.markdown("---")
-    
-    fig = go.Figure(data=[go.Candlestick(x=df.index,
-                open=df['Open'],
-                high=df['High'],
-                low=df['Low'],
-                close=df['Close'])])
-    
-    dt_all = pd.date_range(start=df.index.min(), end=df.index.max())
-    dt_obs = [d.strftime("%Y-%m-%d") for d in df.index]
-    # These are your holidays and weekends
-    dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+    fund_container = st.container(border=True)
+    fund_container.header("Fundamental Metrics")
 
-    fig.update_xaxes(
-        rangebreaks=[
-            dict(bounds=["sat", "mon"]), # Hides all weekends
-            dict(values=dt_breaks)        # Hides specific holidays missing from your data
-        ],
-        rangeslider_visible=True
-    ) 
-    fig.update_yaxes(autorange=True, fixedrange=False)
+    fund_container.dataframe(df_fund,hide_index=True, key='df_fund')
 
-    info = tick.info
+    tech_container = st.container(border=True)
+    tech_container.header("Technical Metrics")
 
-    st.plotly_chart(fig)
-
-    st.header("Fundamental Metrics")
-    st.markdown("---")
-
-    st.dataframe(df_fund,hide_index=True, key='df_fund')
-
-    st.header("Technical Metrics")
-    st.markdown("---")
     df['Close'] = df['Close'].astype(float)  # Ensure 'Close' is float for MACD calculation
 
-    st.dataframe(df_tech,hide_index=True, key='df_tech')
+    tech_container.dataframe(df_tech,hide_index=True, key='df_tech')
 
-    st.header("News")
-    st.markdown("---")
+    news_container = st.container(border=True)
+    news_container.header("News")
 
     news_df = Stocks.get_news()
     
-    st.dataframe(news_df,row_height=150, hide_index=True, column_config={"Link": st.column_config.LinkColumn("Website Link")}, key='news_df')
-
+    news_container.dataframe(news_df,row_height=150, hide_index=True, column_config={"Link": st.column_config.LinkColumn("Website Link")}, key='news_df')
 
 
 

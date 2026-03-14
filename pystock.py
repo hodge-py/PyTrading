@@ -73,6 +73,7 @@ class pyStock:
     def calculate_fundamentals(self):
         info = self.ticker.info
         sector = info.get('sector', 'Unknown')
+        market_cap = f"${info.get('marketCap', 'N/A'):,}" if info.get('marketCap', None) else 'N/A'
         pe_fwd = info.get('forwardPE', None)
         current_ratio = info.get('currentRatio', None)
         debt_to_equity = info.get('debtToEquity', None)
@@ -82,9 +83,10 @@ class pyStock:
         beta = info.get('beta', None)
 
         self.df_fund = pd.DataFrame({
-            'Fundamental': ['Forward P/E', 'Current Ratio', 'Debt to Equity', 'Return on Equity', 'Earnings Per Share', 'Price to Book', 'Beta'],
-            'Value': [pe_fwd, current_ratio, debt_to_equity, return_on_equity, earnings_per_share, price_to_book, beta],
+            'Fundamental': ['Market Cap', 'Forward P/E', 'Current Ratio', 'Debt to Equity', 'Return on Equity', 'Earnings Per Share', 'Price to Book', 'Beta'],
+            'Value': [market_cap, pe_fwd, current_ratio, debt_to_equity, return_on_equity, earnings_per_share, price_to_book, beta],
             'Sector Avg': [
+                self.sector_averages.get(sector, {}).get('avg_market_cap'),
                 self.sector_averages.get(sector, {}).get('avg_pe_fwd'),
                 self.sector_averages.get(sector, {}).get('avg_current_ratio'),
                 self.sector_averages.get(sector, {}).get('avg_debt_to_equity'),
