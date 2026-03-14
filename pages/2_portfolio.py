@@ -48,7 +48,7 @@ def handle_deletion_callback():
 
 st.title("My Portfolio")
 
-col1, col2, col3, col4 = st.columns([3,1,3,1], vertical_alignment='bottom')
+col1, col2, col3, col4 = st.columns([3,1,3,1], vertical_alignment='center')
 
 with col1:
     selected_ticker = st_searchbox(
