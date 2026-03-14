@@ -6,6 +6,7 @@ on:
     # This is the "Magic" part:
     paths:
       - 'app.py'
+      - 'pystock.py'
       - 'requirements.txt'
       - 'Dockerfile'
       - 'all_tickers.txt'
@@ -36,5 +37,5 @@ jobs:
           context: .
           push: true
           tags: |
-            your-username/stock-screener:latest
-            your-username/stock-screener:${{ github.run_number }}
+            hodgejs/pytrading:latest
+            hodgejs/pytrading:${{ github.run_number }}
