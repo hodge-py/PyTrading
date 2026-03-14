@@ -25,6 +25,16 @@ My_Portfolio = ls.getItem("my_portfolio")
 
 if My_Portfolio:
     df = pd.DataFrame(My_Portfolio)
+    for index, row in df.iterrows():
+        ticker = row['Ticker']
+        shares_owned = int(row['Shares Owned'])
+        avg_share_price = float(row['Average Share Price'].replace('$', ''))
+        Stocks.ticker_assign(ticker)
+        stockPrice = Stocks.get_info().get('currentPrice', None)
+        df.at[index, 'Current Share Price'] = "${:.2f}".format(stockPrice) if stockPrice else stockPrice
+        df.at[index, 'Current Value'] = "${:.2f}".format(stockPrice * shares_owned) if stockPrice else stockPrice
+        df.at[index, 'Gain/Loss'] = f"${(stockPrice - avg_share_price) * shares_owned:.2f}"
+        df.at[index, 'Gain/Loss %'] = f"{((stockPrice - avg_share_price) / avg_share_price) * 100 if avg_share_price > 0 else 0:.2f}%"
 
 ticker_list = Stocks.load_tickers('all_tickers.txt')['Companies'].tolist()
 
@@ -65,6 +75,20 @@ with col3:
 
 with col4:
     add_to_portfolio = st.button("Add to Portfolio")
+
+valCol1, valCol2, valCol3 = st.columns([1,1,1], vertical_alignment='center')
+
+with valCol1:
+    portfolio_value = df['Current Value'].replace('[\$,]', '', regex=True).astype(float).sum()
+    st.metric(label="Total Portfolio Value", value=f"${portfolio_value:,.2f}")
+
+with valCol2:
+    total_gain_loss = df['Gain/Loss'].replace('[\$,]', '', regex=True).astype(float).sum()
+    st.metric(label="Total Gain/Loss", value=f"${total_gain_loss:,.2f}")
+
+with valCol3:
+    total_gain_loss_percent = df['Gain/Loss %'].replace('[\%,]', '', regex=True).astype(float).sum()
+    st.metric(label="Total Gain/Loss %", value=f"{total_gain_loss_percent:.2f}%")
 
 st.markdown("---")
 
