@@ -10,6 +10,7 @@ import pandas_ta as ta
 from streamlit_local_storage import LocalStorage
 from pystock import pyStock
 from plotly.subplots import make_subplots
+from streamlit_quill import st_quill
 
 Stocks = pyStock()
 localS = LocalStorage()
@@ -33,7 +34,12 @@ try:
     else:
         #reading_watchlist = pd.read_csv('watchlist.csv', header=None)
         raise pd.errors.EmptyDataError
-        
+    
+    text_notes = localS.getItem("my_notes")
+    if text_notes:
+        text_notes = pd.DataFrame(text_notes, columns=['Ticker', 'Notes'])
+    elif text_notes is None:
+        text_notes = pd.DataFrame(columns=['Ticker', 'Notes'])
 
     #print(reading_watchlist.head())
     df_fund = pd.DataFrame(columns=['Fundamental','Value'])
@@ -59,6 +65,14 @@ try:
         st.rerun()
 
     if search and selected_ticker:
+        @st.fragment
+        def notes_section():
+            if text_notes[text_notes['Ticker'] == selected_ticker]['Notes'].values.size == 0:
+                content = st_quill(value="",key="quill_editor")
+            else:
+                content = st_quill(value= text_notes[text_notes['Ticker'] == selected_ticker]['Notes'].values[0],key="quill_editor")
+            return content
+
 
         tick = Stocks.ticker_assign(selected_ticker)
 
@@ -94,6 +108,14 @@ try:
         fig.update_xaxes(rangeslider_visible=True, col=1, row=1, rangebreaks=[dict(values=dt_breaks)])
 
         main_container.plotly_chart(fig)
+
+        notes_container = st.container(border=True)
+
+        notes_container.header("My Notes on " + selected_ticker)
+
+        content = notes_section()
+
+        notes_container.write(content, unsafe_allow_html=True)
 
         fund_container = st.container(border=True)
 
