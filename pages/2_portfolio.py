@@ -86,15 +86,18 @@ with valCol1:
 
 with valCol2:
     total_gain_loss = df['Gain/Loss'].replace('[\\$,]', '', regex=True).astype(float).sum()
+    df['Share of Portfolio'] = df['Current Value'].replace('[\\$,]', '', regex=True).astype(float) / portfolio_value * 100 if portfolio_value > 0 else 0
+    df['Share of Portfolio'] = df['Share of Portfolio'].apply(lambda x: f"{x:.2f}%")
     st.metric(label="Total Gain/Loss", value=f"${total_gain_loss:,.2f}")
 
 with valCol3:
-    total_gain_loss_percent = df['Gain/Loss %'].replace('[\\%,]', '', regex=True).astype(float).sum()
-    st.metric(label="Total Gain/Loss %", value=f"{total_gain_loss_percent:.2f}%")
+    percent_portfolio_gain_loss = (total_gain_loss / (portfolio_value - total_gain_loss)) * 100 if (portfolio_value - total_gain_loss) > 0 else 0
+    st.metric(label="Total Gain/Loss %", value=f"{percent_portfolio_gain_loss:.2f}%")
 
 c_table = st.container(border=True)
 
-c_table.data_editor(df, num_rows="dynamic", use_container_width='stretch', key="my_portfolio",on_change=handle_deletion_callback,column_config={'Ticker': {'alignment':'center'}, 'Shares Owned': {'alignment':'right'}, 'Average Share Price': {'alignment':'right'}, 'Current Share Price': {'alignment':'right'}, 'Gain/Loss': {'alignment':'right'}, 'Gain/Loss %': {'alignment':'right'}, 'Original Value': {'alignment':'right'}, 'Current Value': {'alignment':'right'} })
+c_table.data_editor(df, num_rows="dynamic", use_container_width='stretch', key="my_portfolio",on_change=handle_deletion_callback,column_config={'Ticker': {'alignment':'center'}, 'Shares Owned': {'alignment':'right'}, 'Average Share Price': {'alignment':'right'}, 'Current Share Price': {'alignment':'right'}, 
+    'Gain/Loss': {'alignment':'right'}, 'Gain/Loss %': {'alignment':'right'}, 'Original Value': {'alignment':'right'}, 'Current Value': {'alignment':'right'}, 'Share of Portfolio': {'alignment':'right'}})
 
 
 if add_to_portfolio and selected_ticker:
@@ -110,6 +113,7 @@ if add_to_portfolio and selected_ticker:
         'Current Value': "${:.2f}".format(stockPrice * sharesInput) if stockPrice else stockPrice,
         'Gain/Loss': f"${(stockPrice - avg_share_price) * sharesInput:.2f}",
         'Gain/Loss %': f"{((stockPrice - avg_share_price) / avg_share_price) * 100 if avg_share_price > 0 else 0:.2f}%",
+        'Share of Portfolio': ((stockPrice * sharesInput) / portfolio_value) * 100 if portfolio_value > 0 else f"{100:.2f}%"
     }
 
     df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)

@@ -8,6 +8,7 @@ import pandas_ta as ta
 import plotly.graph_objects as go
 from streamlit_local_storage import LocalStorage
 from pystock import pyStock
+from plotly.subplots import make_subplots
 
 localS = LocalStorage()
 
@@ -53,7 +54,7 @@ with col2:
     search_clicked = st.button("Search")
 
 with col3:
-    search_add = st.button("⭐ Add to Watchlist")
+    search_add = st.button("Add to Watchlist ⭐")
 
 if search_clicked and selected_ticker:
     stockContainer = st.container(border=True)
@@ -74,13 +75,21 @@ if search_clicked and selected_ticker:
 
     stockContainer.metric(label=f"{selected_ticker} - {tick.info['longName']} - Stock Price", value=f"${df['Close'].iloc[-1]:,.2f}")
 
-    figLine = go.Figure()
-    figLine.add_trace(go.Scatter(x=df.index, y=sma_df['SMA 20'], name="SMA 20", mode='lines'))
-    figLine.add_trace(go.Scatter(x=df.index, y=sma_df['SMA 50'], name="SMA 50", mode='lines'))
-    figLine.add_trace(go.Scatter(x=df.index, y=sma_df['Close'], name="Close", mode='lines'))
-    figLine.update_xaxes(rangeslider_visible=True)
+    fig = make_subplots(rows=1, cols=1, shared_xaxes=True, vertical_spacing=0.03, row_heights=[1])
 
-    stockContainer.plotly_chart(figLine)
+    fig.add_trace(go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'],name="Close"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=sma_df['SMA 20'], name="SMA 20", mode='lines'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=sma_df['SMA 50'], name="SMA 50", mode='lines'), row=1, col=1)
+
+    dt_all = pd.date_range(start=df.index.min(), end=df.index.max())
+
+    # 2. Identify which dates are NOT in your actual data
+    dt_obs = pd.to_datetime(df.index)
+    dt_breaks = [d.strftime("%Y-%m-%d") for d in dt_all if d not in dt_obs]
+
+    fig.update_xaxes(rangeslider_visible=True, col=1, row=1, rangebreaks=[dict(values=dt_breaks)])
+
+    stockContainer.plotly_chart(fig)
 
     fund_container = st.container(border=True)
     fund_container.header("Fundamental Metrics")
